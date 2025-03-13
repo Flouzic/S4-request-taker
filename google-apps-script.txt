@@ -1,0 +1,49 @@
+// Google Apps Script code to be copied into Google Apps Script Editor
+
+function doPost(e) {
+  // Set CORS headers
+  var headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  };
+
+  try {
+    // Parse the incoming data
+    var data = JSON.parse(e.postData.contents);
+    var timestamp = new Date().toISOString();
+    
+    // Validate required fields
+    if (!data.name || !data.contact || !data.request) {
+      return ContentService.createTextOutput(JSON.stringify({ 'error': 'Missing required fields' }))
+        .setMimeType(ContentService.MimeType.JSON)
+        .setHeaders(headers);
+    }
+    
+    // Get the active spreadsheet
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    
+    // Check if headers exist, if not add them
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(['Timestamp', 'Name', 'Discord Username', 'Request Details', 'Priority Order']);
+    }
+    
+    // Append the data to the sheet
+    sheet.appendRow([timestamp, data.name, data.contact, data.request, data.priority ? 'Yes' : 'No']);
+    
+    // Return success response with CORS headers
+    return ContentService.createTextOutput(JSON.stringify({ 'success': true }))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeaders(headers);
+      
+  } catch (error) {
+    // Return error response with CORS headers
+    return ContentService.createTextOutput(JSON.stringify({ 'error': error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeaders(headers);
+  }
+}
+
+function doGet(e) {
+  return HtmlService.createHtmlOutput('The web app is running!');
+}
